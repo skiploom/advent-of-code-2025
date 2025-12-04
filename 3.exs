@@ -1,4 +1,5 @@
 defmodule Go do
+  # Part 1
   def go1() do
     parse_file!()
     |> Enum.map(&jolt/1)
@@ -21,11 +22,46 @@ defmodule Go do
   def find_2nd([curr | next], largest) when curr > largest, do: find_2nd(next, curr)
   def find_2nd([_curr | next], largest), do: find_2nd(next, largest)
 
+  # Part 2
+  @num_batt 12
+
+  def go2() do
+    parse_file!()
+    |> Enum.map(&poo/1)
+    |> Enum.sum()
+  end
+
+  def poo(bank) do
+    foo(bank, 1, -1, 0)
+  end
+
+  def foo(_, n, _, acc) when n == @num_batt + 1, do: acc
+  def foo(bank, n, prev_i, acc) do
+    start_i = prev_i + 1
+
+    # The window for the first battery is every digit except the last 11.
+    # The window for the second battery is every digit between the first battery and the last 10.
+    # And so on...
+    window =
+      bank
+      |> Enum.drop(start_i)
+      |> Enum.drop(-@num_batt + n)
+
+    {batt, batt_i} = find_n(window, start_i, 0, start_i)
+    batt_num = batt * Integer.pow(10, @num_batt - n)
+
+    foo(bank, n + 1, batt_i, acc + batt_num)
+  end
+
+  def find_n([], _, acc, acc_i), do: {acc, acc_i}
+  def find_n([curr | next], i, acc, _) when curr > acc, do: find_n(next, i + 1, curr, i)
+  def find_n([_ | next], i, acc, acc_i), do: find_n(next, i + 1, acc, acc_i)
+
+  # Shared
   def parse_file!() do
     "inputs/3.txt"
     |> File.read!()
     |> String.split()
-    # |> Enum.take(5)
     |> Enum.map(&parse!/1)
   end
 
@@ -34,3 +70,4 @@ defmodule Go do
 end
 
 IO.puts(Go.go1())
+IO.puts(Go.go2())
